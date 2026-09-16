@@ -40,23 +40,29 @@ func Read() (Config, error) {
 }
 
 func getConfigFilePath() (string, error) {
-	home_dir, err := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("error getting home directory: %v", err)
 	}
 
-	return filepath.Join(home_dir, configFileName), nil
+	return filepath.Join(homeDir, configFileName), nil
 }
 
 func writeToConfigFile(cfg Config) error {
-	config_file_path, err := getConfigFilePath()
+	configFilePath, err := getConfigFilePath()
 	if err != nil {
 		return fmt.Errorf("error getting config file path: %v", err)
 	}
 
-	config_bytes, _ := json.Marshal(cfg)
+	file, err := os.Create(configFilePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
 
-	err = os.WriteFile(config_file_path, config_bytes, 0644)
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(cfg)
+
 	if err != nil {
 		return fmt.Errorf("error writting to file: %v", err)
 	}
